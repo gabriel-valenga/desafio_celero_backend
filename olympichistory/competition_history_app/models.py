@@ -86,8 +86,8 @@ class CompeticaoAtleta(Base):
     competicao = models.ForeignKey(Competicao, null=False, on_delete=models.RESTRICT)
     atleta = models.ForeignKey(Atleta, null=False, on_delete=models.RESTRICT)
     idade_atleta = models.IntegerField(null=True)
-    altura_atleta = models.DecimalField(null=True, decimal_places=2, max_digits=3)
-    peso_atleta = models.DecimalField(null=True, decimal_places=2, max_digits=5)
+    altura_atleta = models.DecimalField(null=True, decimal_places=0, max_digits=3)
+    peso_atleta = models.DecimalField(null=True, decimal_places=0, max_digits=3)
     time = models.ForeignKey(Time, null=False, on_delete=models.RESTRICT,
                              default=94)
     medalha = models.CharField(max_length=6, choices=MEDALHA, blank=True)
