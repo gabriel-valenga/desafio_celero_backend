@@ -69,21 +69,21 @@ class Olimpiada(Base):
 
 
 class Competicao(Base):
-    olimpiada = models.ForeignKey(Olimpiada, to_field='nome', null=False, on_delete=models.RESTRICT)
     esporte = models.CharField(max_length=40, blank=False)
     modalidade = models.CharField(max_length=100, blank=False)
 
     class Meta:
-        models.UniqueConstraint(fields=['olimpiada', 'esporte', 'modalidade'], name='unique_competicao')
+        models.UniqueConstraint(fields=['esporte', 'modalidade'], name='unique_competicao')
         verbose_name = 'Competição'
         verbose_name_plural = 'Competições'
 
     def __str__(self):
-        return f'{self.olimpiada} - {self.esporte}, {self.modalidade}'
+        return f'{self.esporte}, {self.modalidade}'
 
 
 class CompeticaoAtleta(Base):
     competicao = models.ForeignKey(Competicao, null=False, on_delete=models.RESTRICT)
+    olimpiada = models.ForeignKey(Olimpiada, to_field='nome', default='Nao Informada', null=False, on_delete=models.RESTRICT)
     atleta = models.ForeignKey(Atleta, null=False, on_delete=models.RESTRICT)
     idade_atleta = models.IntegerField(null=True)
     altura_atleta = models.DecimalField(null=True, decimal_places=0, max_digits=3)

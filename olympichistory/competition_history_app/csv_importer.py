@@ -22,11 +22,16 @@ def importar_noc_regions():
                 nocs.append(noc)
                 nocs_busca.add(linha['NOC'])
 
+    Noc.objects.bulk_create(nocs)
+
 
 def importar_athlete_events():
     atletas_busca = set()
     times_busca = set()
     olimpiadas_busca = set()
+    competicoes_busca = set()
+    competicao_atleta_lista_dicts = []
+    competicao_atleta_id = 1
 
     with open('static/athlete_events.csv', 'r') as arquivo_csv:
         linhas = csv.DictReader(arquivo_csv)
@@ -58,6 +63,62 @@ def importar_athlete_events():
                 olimpiadas.append(olimpiada)
                 olimpiadas_busca.add(linha['Games'])
 
+            competicao_chave_composta = linha['Sport'] + ' - ' + linha['Event']
+
+            if competicao_chave_composta not in competicoes_busca:
+                competicao = Competicao(esporte=linha['Sport'],
+                                        modalidade=linha['Event'])
+                competicoes.append(competicao)
+                competicoes_busca.add(competicao_chave_composta)
+
+            idade = linha['Age']
+            if not idade.isdigit():
+                idade = None
+            altura = linha['Height']
+            if not altura.isdigit():
+                altura = None
+            peso = linha['Weight']
+            if not peso.isdigit():
+                peso = None
+
+            competicao_atleta_lista_dicts.append(
+                {'competicao': {'esporte': linha['Sport'],
+                                'modalidade': linha['Event']},
+                 'olimpiada': linha['Games'],
+                 'atleta': linha['ID'],
+                 'idade_atleta': idade,
+                 'altura_atleta': altura,
+                 'peso_atleta': peso,
+                 'time': linha['Team'],
+                 'medalha': linha['Medal']})
+
+            competicao_atleta_id += 1
+
+    Atleta.objects.bulk_create(atletas)
+    Time.objects.bulk_create(times)
+    Olimpiada.objects.bulk_create(olimpiadas)
+    Competicao.objects.bulk_create(competicoes)
+
+    for comp_atleta_dict in competicao_atleta_lista_dicts:
+
+        competicao_atleta_competicao =\
+            Competicao.objects.get(esporte=comp_atleta_dict.get('competicao').get('esporte'),
+                                   modalidade=comp_atleta_dict.get('competicao').get('modalidade'))
+        competicao_atleta_olimpiada = Olimpiada.objects.get(nome=comp_atleta_dict.get('olimpiada'))
+        competicao_atleta_atleta = Atleta.objects.get(id=comp_atleta_dict.get('atleta'))
+        competicao_atleta_time = Time.objects.get(nome=comp_atleta_dict.get('time'))
+
+        competicao_atleta = CompeticaoAtleta(competicao=competicao_atleta_competicao,
+                                             olimpiada=competicao_atleta_olimpiada,
+                                             atleta=competicao_atleta_atleta,
+                                             idade_atleta=comp_atleta_dict.get('idade_atleta'),
+                                             altura_atleta=comp_atleta_dict.get('altura_atleta'),
+                                             peso_atleta=comp_atleta_dict.get('peso_atleta'),
+                                             time=competicao_atleta_time,
+                                             medalha=comp_atleta_dict.get('medalha'))
+        competicoes_atletas.append(competicao_atleta)
+    CompeticaoAtleta.objects.bulk_create(competicoes_atletas)
+
 
 def limpar_dados_db():
 
@@ -86,13 +147,11 @@ def limpar_dados_db():
         raise Exception('Erro de restricao ao apagar os dados da tabela atleta. '
                         'Os dados da tabela competicao_atleta devem ser excluidos antes.')
 
-
-def criar_dados_db():
-    Atleta.objects.bulk_create(atletas)
-    Time.objects.bulk_create(times)
-    Olimpiada.objects.bulk_create(olimpiadas)
-    gravar_competicoes()
-    gravar_competicoesatletas()
+    try:
+        Noc.objects.all().delete()
+    except RestrictedError:
+        raise Exception('Erro de restricao ao apagar os dados da tabela noc. '
+                        'Os dados da tabela time devem ser excluidos antes.')
 
 
 def limpar_listas():
@@ -102,107 +161,13 @@ def limpar_listas():
     times.clear()
     olimpiadas.clear()
     competicoes.clear()
-    competicoes_atletas.clear
-
-
-def gravar_competicoes():
-    competicoes_busca = set()
-
-    with open('static/athlete_events.csv', 'r') as arquivo_csv:
-        linhas = csv.DictReader(arquivo_csv)
-
-        for linha in linhas:
-            competicao_chave_composta = linha['Games'] + ' - ' + \
-                                        linha['Sport'] + ' - ' + linha['Event']
-
-            olimpiada = Olimpiada.objects.get(nome=linha['Games'])
-
-            if competicao_chave_composta not in competicoes_busca:
-                competicao = Competicao(olimpiada=olimpiada,
-                                        esporte=linha['Sport'],
-                                        modalidade=linha['Event'])
-                competicoes.append(competicao)
-                competicoes_busca.add(competicao_chave_composta)
-
-    Competicao.objects.bulk_create(competicoes)
-
-
-def gravar_competicoesatletas():
-    competicoes_atletas_busca = set()
-    competicao_atleta_id = 1
-
-    with open('static/athlete_events.csv', 'r') as arquivo_csv:
-        linhas = csv.DictReader(arquivo_csv)
-
-        for linha in linhas:
-
-            if competicao_atleta_id not in competicoes_atletas_busca:
-
-                olimpiada = Olimpiada.objects.get(nome=linha['Games'])
-                competicao = Competicao.objects.get(olimpiada=olimpiada,
-                                                    esporte=linha['Sport'],
-                                                    modalidade=linha['Event'])
-                atleta = Atleta.objects.get(id=linha['ID'])
-                time = Time.objects.get(nome=linha['Team'])
-
-                idade = linha['Age']
-
-                if not idade.isdigit():
-                    idade = None
-
-                altura = linha['Height']
-
-                if not altura.isdigit():
-                    altura = None
-
-                peso = linha['Weight']
-
-                if not peso.isdigit():
-                    peso = None
-
-                competicao_atleta = CompeticaoAtleta(competicao=competicao,
-                                                     atleta=atleta,
-                                                     idade_atleta=idade,
-                                                     altura_atleta=altura,
-                                                     peso_atleta=peso,
-                                                     time=time,
-                                                     medalha=linha['Medal'])
-                competicoes_atletas.append(competicao_atleta)
-                competicoes_atletas_busca.add(competicao_atleta_id)
-
-            competicao_atleta_id += 1
-
-    CompeticaoAtleta.objects.bulk_create(competicoes_atletas)
+    competicoes_atletas.clear()
 
 
 def importar_dados_padrao():
     limpar_listas()
-
-    try:
-        Noc.objects.all().delete()
-    except RestrictedError:
-        raise Exception('Erro de restricao ao apagar os dados da tabela noc. '
-                        'Os dados da tabela time devem ser excluidos antes.')
-
+    limpar_dados_db()
     importar_noc_regions()
-    Noc.objects.bulk_create(nocs)
-
-    Atleta.objects.all().delete()
-    Time.objects.all().delete()
-
-    try:
-        Olimpiada.objects.all().delete()
-    except RestrictedError:
-        raise Exception('Erro de restricao ao apagar os dados da tabela olimpiada. '
-                        'Os dados da tabela competicao devem ser excluidos antes.')
-
-    Competicao.objects.all().delete()
-    CompeticaoAtleta.objects.all().delete()
-
     importar_athlete_events()
-
-    if len(erros_importacao) == 0:
-        limpar_dados_db()
-        criar_dados_db()
 
     return erros_importacao

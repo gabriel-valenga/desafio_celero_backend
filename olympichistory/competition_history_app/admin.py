@@ -31,7 +31,7 @@ class OlimpiadaAdmin(admin.ModelAdmin):
 
 @admin.register(Competicao)
 class CompeticaoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'olimpiada', 'esporte', 'modalidade', 'criacao_registro', 'atualizacao_registro')
+    list_display = ('id', 'esporte', 'modalidade', 'criacao_registro', 'atualizacao_registro')
 
 
 @admin.register(CompeticaoAtleta)
