@@ -13,7 +13,8 @@ ESTACOES_ANO_OLIMPICAS = (
 MEDALHA = (
     ('Golden', 'Ouro'),
     ('Silver', 'Prata'),
-    ('Bronze', 'Bronze')
+    ('Bronze', 'Bronze'),
+    ('NA', 'Sem medalha')
 )
 
 
@@ -34,6 +35,9 @@ class Noc(Base):
         verbose_name = 'Noc'
         verbose_name_plural = 'Nocs'
 
+    def __str__(self):
+        return self.sigla
+
 
 class Atleta(Base):
     nome = models.CharField(max_length=100, blank=False)
@@ -46,7 +50,7 @@ class Atleta(Base):
 
 class Time(Base):
     nome = models.CharField(max_length=70, unique=True, blank=False)
-    noc = models.ForeignKey(Noc, max_length=3, blank=False, on_delete=models.RESTRICT)
+    noc = models.ForeignKey(Noc, to_field='sigla', max_length=3, null=False, on_delete=models.RESTRICT)
 
     class Meta:
         verbose_name = 'Time'
@@ -65,7 +69,7 @@ class Olimpiada(Base):
 
 
 class Competicao(Base):
-    olimpiada = models.ForeignKey(Olimpiada, null=False, on_delete=models.RESTRICT)
+    olimpiada = models.ForeignKey(Olimpiada, to_field='nome', null=False, on_delete=models.RESTRICT)
     esporte = models.CharField(max_length=40, blank=False)
     modalidade = models.CharField(max_length=100, blank=False)
 
@@ -84,5 +88,7 @@ class CompeticaoAtleta(Base):
     idade_atleta = models.IntegerField(null=True)
     altura_atleta = models.DecimalField(null=True, decimal_places=2, max_digits=3)
     peso_atleta = models.DecimalField(null=True, decimal_places=2, max_digits=5)
+    time = models.ForeignKey(Time, null=False, on_delete=models.RESTRICT,
+                             default=94)
     medalha = models.CharField(max_length=6, choices=MEDALHA, blank=True)
 

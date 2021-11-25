@@ -21,7 +21,7 @@ class AtletaAdmin(admin.ModelAdmin):
 
 @admin.register(Time)
 class TimeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nome', 'noc', 'criacao_registro', 'atualizacao_registro')
+    list_display = ('nome', 'noc', 'criacao_registro', 'atualizacao_registro')
 
 
 @admin.register(Olimpiada)
@@ -31,7 +31,7 @@ class OlimpiadaAdmin(admin.ModelAdmin):
 
 @admin.register(Competicao)
 class CompeticaoAdmin(admin.ModelAdmin):
-    list_display = ('olimpiada', 'esporte', 'modalidade', 'criacao_registro', 'atualizacao_registro')
+    list_display = ('id', 'olimpiada', 'esporte', 'modalidade', 'criacao_registro', 'atualizacao_registro')
 
 
 @admin.register(CompeticaoAtleta)
