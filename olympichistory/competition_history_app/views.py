@@ -4,8 +4,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
 from .csv_importer import importar_dados_padrao
-from .models import Noc, Atleta, Time
-from .serializers import NocSerializer, AtletaSerializer, TimeSerializer
+from .models import Noc, Atleta, Time, Olimpiada, Competicao, CompeticaoAtleta
+from .serializers import (
+    NocSerializer, AtletaSerializer, TimeSerializer, OlimpiadaSerializer,
+    CompeticaoSerializer, CompeticaoAtletaSerializer
+)
 
 
 class ImportarDadosCsvPadraoAPIView(APIView):
@@ -45,6 +48,53 @@ class TimesAPIView(generics.ListCreateAPIView):
     serializer_class = TimeSerializer
 
 
-class TimeAPIView(generics.RetrieveAPIView):
+class TimeAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Time.objects.all()
     serializer_class = TimeSerializer
+
+
+class OlimpiadasAPIView(generics.ListCreateAPIView):
+    queryset = Olimpiada.objects.all()
+    serializer_class = OlimpiadaSerializer
+
+
+class OlimpiadaAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Olimpiada.objects.all()
+    serializer_class = OlimpiadaSerializer
+
+
+class CompeticoesAPIView(generics.ListCreateAPIView):
+    queryset = Competicao.objects.all()
+    serializer_class = CompeticaoSerializer
+
+
+class CompeticaoAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Competicao.objects.all()
+    serializer_class = CompeticaoSerializer
+
+
+class CompeticoesAtletasAPIView(generics.ListCreateAPIView):
+    queryset = CompeticaoAtleta.objects.all()
+    serializer_class = CompeticaoAtletaSerializer
+
+    def get_queryset(self):
+        busca_por_atleta = self.kwargs.get('atleta_pk')
+        busca_por_olimpiada = self.kwargs.get('olimpiada_pk')
+        busca_por_competicao = self.kwargs.get('competicao_pk')
+        busca_por_time = self.kwargs.get('time_pk')
+        if busca_por_atleta:
+            return self.queryset.filter(atleta=busca_por_atleta)
+        if busca_por_olimpiada:
+            return self.queryset.filter(olimpiada=busca_por_olimpiada)
+        if busca_por_competicao:
+            return self.queryset.filter(competicao=busca_por_competicao)
+        if busca_por_time:
+            return self.queryset.filter(time=busca_por_time)
+
+        return self.queryset.all()
+
+
+class CompeticaoAtletaAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CompeticaoAtleta.objects.all()
+    serializer_class = CompeticaoAtletaSerializer
+
